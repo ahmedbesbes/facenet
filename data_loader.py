@@ -24,7 +24,7 @@ class TripletFaceDataset(Dataset):
         triplets = []
         classes = df['class'].unique()
 
-        face_classes = (df.groupy('class')
+        face_classes = (df.groupby('class')
                         .apply(lambda row: list(row['name']))
                         .to_dict()
                         )

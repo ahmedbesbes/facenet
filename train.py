@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(
     description='Face Recognition using Triplet Loss')
 
 parser.add_argument('--start-epoch', default=0, type=int, metavar='SE',
-                    help='start epoch (default: 0)')
+                    help='start epoch (default: 0   )')
 parser.add_argument('--num-epochs', default=200, type=int, metavar='NE',
                     help='number of epochs to train (default: 200)')
 parser.add_argument('--num-classes', default=10000, type=int, metavar='NC',
