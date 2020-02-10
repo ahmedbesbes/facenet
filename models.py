@@ -33,7 +33,6 @@ class FaceNetModel(nn.Module):
         x = self.model.layer3(x)
         x = self.model.layer4(x)
         x = x.view(x.size(0), -1)
-        print(x.shape)
         x = self.model.fc(x)
 
         self.features = self.l2_norm(x)
