@@ -10,7 +10,7 @@ class FaceNetModel(nn.Module):
 
         self.model = resnet34(pretrained)
         self.embedding_size = embedding_size
-        self.model.fc = nn.Linear(2048*3*3, self.embedding_size)
+        self.model.fc = nn.Linear(21504, self.embedding_size)
         self.model.classifier = nn.Linear(self.embedding_size, num_classes)
 
     def l2_norm(self, input):
