@@ -43,8 +43,10 @@ parser.add_argument('--learning-rate', default=0.001, type=float, metavar='LR',
                     help='learning rate (default: 0.001)')
 parser.add_argument('--margin', default=0.5, type=float, metavar='MG',
                     help='margin (default: 0.5)')
-parser.add_argument('--indentity-csv-name', default='/data_science/computer_vision/data/celeba/identities.csv',
+parser.add_argument('--identity-csv-name', default='/data_science/computer_vision/data/celeba/identities.csv',
                     type=str, help='files with image id and identity id')
+parser.add_argument('--identity-stats', default='/data_science/computer_vision/data/celeba/stats_identities.csv',
+                    type=str, help="csv file with stats on each identity")
 parser.add_argument('--root-dir', default='/data_science/computer_vision/data/celeba/', type=str,
                     help='root directory for data')
 
@@ -54,9 +56,13 @@ l2_dist = PairwiseDistance(2)
 
 
 def main():
-    identities = pd.read_csv(args.indentity_csv_name)
-    train_identities, valid_identities = train_test_split(
-        identities, test_size=args.test_size)
+    stats_identities = pd.read_csv(args.identity_stats)
+    train_ids, valid_ids = train_test_split(stats_identities['class'],
+                                            startify=stats_identities['n_images'],
+                                            test_size=args.test_size)
+    identities = pd.read_csv(args.identity_csv_name)
+    train_identities = identities[identities['class'].isin(train_ids)]
+    valid_identities = identities[identities['class'].isin(valid_ids)]
 
     model = FaceNetModel(embedding_size=args.embedding_size,
                          num_classes=args.num_classes).to(device)

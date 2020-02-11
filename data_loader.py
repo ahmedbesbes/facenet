@@ -23,8 +23,6 @@ class TripletFaceDataset(Dataset):
     def generate_triplets(df, num_triplets):
 
         triplets = []
-        classes = df['class'].unique()
-
         grouped_by_class = (df.groupby('class')
                             .apply(lambda row: list(row['name'])))
 
