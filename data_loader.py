@@ -24,10 +24,14 @@ class TripletFaceDataset(Dataset):
         triplets = []
         classes = df['class'].unique()
 
-        face_classes = (df.groupby('class')
-                        .apply(lambda row: list(row['name']))
-                        .to_dict()
-                        )
+        grouped_by_class = (df.groupby('class')
+                            .apply(lambda row: list(row['name'])))
+
+        face_classes = grouped_by_class.to_dict()
+
+        grouped_by_class.reset_index(inplace=True)
+        grouped_by_class.columns = ['class', 'images']
+        grouped_by_class['n_images'] = grouped_by_class['images'].map(len)
 
         for _ in range(num_triplets):
 
@@ -38,13 +42,12 @@ class TripletFaceDataset(Dataset):
               - at least, two images needed for anchor and positive images in pos_class
               - negative image should have different class as anchor and positive images by definition
             '''
-
-            pos_class = np.random.choice(classes)
-            neg_class = np.random.choice(classes)
-            while len(face_classes[pos_class]) < 2:
-                pos_class = np.random.choice(classes)
-            while pos_class == neg_class:
-                neg_class = np.random.choice(classes)
+            pos_class = (grouped_by_class[grouped_by_class['n_images'] > 2]['class']
+                         .sample(1)
+                         .values[0])
+            neg_class = (grouped_by_class[grouped_by_class['class'] != pos_class]['class']
+                         .sample(1)
+                         .values[0])
 
             pos_name = df.loc[df['class'] == pos_class, 'name'].values[0]
             neg_name = df.loc[df['class'] == neg_class, 'name'].values[0]
@@ -52,12 +55,10 @@ class TripletFaceDataset(Dataset):
             if len(face_classes[pos_class]) == 2:
                 ianc, ipos = np.random.choice(2, size=2, replace=False)
             else:
-                ianc = np.random.randint(0, len(face_classes[pos_class]))
-                ipos = np.random.randint(0, len(face_classes[pos_class]))
-                while ianc == ipos:
-                    ipos = np.random.randint(0, len(face_classes[pos_class]))
+                ianc, ipos = np.random.choice(range(len(face_classes[pos_class])),
+                                              2,
+                                              replace=False)
             ineg = np.random.randint(0, len(face_classes[neg_class]))
-
             triplets.append([face_classes[pos_class][ianc], face_classes[pos_class][ipos], face_classes[neg_class][ineg],
                              pos_class, neg_class, pos_name, neg_name])
 

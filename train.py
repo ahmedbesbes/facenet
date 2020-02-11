@@ -101,16 +101,16 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
         else:
             model.eval()
 
-        for batch_idx, batch_sample in tqdm(enumerate(dataloaders[phase]),
-                                            leave=False,
-                                            total=len(dataloaders[phase])):
+        for _, batch_sample in tqdm(enumerate(dataloaders[phase]),
+                                    leave=False,
+                                    total=len(dataloaders[phase])):
 
             anc_img = batch_sample['anc_img'].to(device)
             pos_img = batch_sample['pos_img'].to(device)
             neg_img = batch_sample['neg_img'].to(device)
 
-            pos_cls = batch_sample['pos_class'].to(device)
-            neg_cls = batch_sample['neg_class'].to(device)
+            # pos_cls = batch_sample['pos_class'].to(device)
+            # neg_cls = batch_sample['neg_class'].to(device)
 
             with torch.set_grad_enabled(phase == 'train'):
 
@@ -135,19 +135,19 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
                 pos_hard_embed = pos_embed[hard_triplets].to(device)
                 neg_hard_embed = neg_embed[hard_triplets].to(device)
 
-                anc_hard_img = anc_img[hard_triplets].to(device)
-                pos_hard_img = pos_img[hard_triplets].to(device)
-                neg_hard_img = neg_img[hard_triplets].to(device)
+                # anc_hard_img = anc_img[hard_triplets].to(device)
+                # pos_hard_img = pos_img[hard_triplets].to(device)
+                # neg_hard_img = neg_img[hard_triplets].to(device)
 
-                pos_hard_cls = pos_cls[hard_triplets].to(device)
-                neg_hard_cls = neg_cls[hard_triplets].to(device)
+                # pos_hard_cls = pos_cls[hard_triplets].to(device)
+                # neg_hard_cls = neg_cls[hard_triplets].to(device)
 
-                anc_img_pred = model.forward_classifier(
-                    anc_hard_img).to(device)
-                pos_img_pred = model.forward_classifier(
-                    pos_hard_img).to(device)
-                neg_img_pred = model.forward_classifier(
-                    neg_hard_img).to(device)
+                # anc_img_pred = model.forward_classifier(
+                #     anc_hard_img).to(device)
+                # pos_img_pred = model.forward_classifier(
+                #     pos_hard_img).to(device)
+                # neg_img_pred = model.forward_classifier(
+                #     neg_hard_img).to(device)
 
                 triplet_loss = TripletLoss(args.margin).forward(
                     anc_hard_embed, pos_hard_embed, neg_hard_embed).to(device)
