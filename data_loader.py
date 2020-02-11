@@ -29,6 +29,7 @@ class TripletFaceDataset(Dataset):
 
         face_classes = grouped_by_class.to_dict()
 
+        grouped_by_class = pd.DataFrame(grouped_by_class)
         grouped_by_class.reset_index(inplace=True)
         grouped_by_class.columns = ['class', 'images']
         grouped_by_class['n_images'] = grouped_by_class['images'].map(len)
