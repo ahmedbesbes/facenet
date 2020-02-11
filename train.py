@@ -49,6 +49,8 @@ parser.add_argument('--identity-stats', default='/data_science/computer_vision/d
                     type=str, help="csv file with stats on each identity")
 parser.add_argument('--root-dir', default='/data_science/computer_vision/data/celeba/', type=str,
                     help='root directory for data')
+parser.add_argument('--epochs-save', default=5, type=int,
+                    help='number of epochs to save model')
 
 args = parser.parse_args()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -58,7 +60,7 @@ l2_dist = PairwiseDistance(2)
 def main():
     stats_identities = pd.read_csv(args.identity_stats)
     train_ids, valid_ids = train_test_split(stats_identities['class'].values,
-                                            stratify=stats_identities['n_images'].values,
+                                            stra    tify=stats_identities['n_images'].values,
                                             test_size=args.test_size)
     identities = pd.read_csv(args.identity_csv_name)
     train_identities = identities[identities['class'].isin(train_ids)]
@@ -174,26 +176,31 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
                 triplet_loss_sum += triplet_loss.item()
 
         avg_triplet_loss = triplet_loss_sum / data_size[phase]
-        labels = np.array([sublabel for label in labels for sublabel in label])
-        distances = np.array(
-            [subdist for dist in distances for subdist in dist])
-
-        tpr, fpr, accuracy, val, val_std, far = evaluate(distances, labels)
         print('  {} set - Triplet Loss       = {:.8f}'.format(phase, avg_triplet_loss))
-        print('  {} set - Accuracy           = {:.8f}'.format(phase, np.mean(accuracy)))
 
-        with open('./log/{}_log_epoch{}.txt'.format(phase, epoch), 'w') as f:
-            f.write(str(epoch) + '\t' +
-                    str(np.mean(accuracy)) + '\t' +
-                    str(avg_triplet_loss))
+        if epoch % args.epochs_save == 0:
 
-        if phase == 'train':
-            torch.save({'epoch': epoch,
-                        'state_dict': model.state_dict()},
-                       './log/checkpoint_epoch{}.pth'.format(epoch))
-        else:
-            plot_roc(
-                fpr, tpr, figure_name='./log/roc_valid_epoch_{}.png'.format(epoch))
+            labels = np.array(
+                [sublabel for label in labels for sublabel in label])
+            distances = np.array(
+                [subdist for dist in distances for subdist in dist])
+
+            tpr, fpr, accuracy, val, val_std, far = evaluate(distances, labels)
+            print(
+                '  {} set - Accuracy           = {:.8f}'.format(phase, np.mean(accuracy)))
+
+            with open('./log/{}_log_epoch{}.txt'.format(phase, epoch), 'w') as f:
+                f.write(str(epoch) + '\t' +
+                        str(np.mean(accuracy)) + '\t' +
+                        str(avg_triplet_loss))
+
+            if phase == 'train':
+                torch.save({'epoch': epoch,
+                            'state_dict': model.state_dict()},
+                           './log/checkpoint_epoch{}.pth'.format(epoch))
+            else:
+                plot_roc(
+                    fpr, tpr, figure_name='./log/roc_valid_epoch_{}.png'.format(epoch))
 
 
 if __name__ == '__main__':
