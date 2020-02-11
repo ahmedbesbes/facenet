@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from skimage import io
@@ -34,7 +35,7 @@ class TripletFaceDataset(Dataset):
         grouped_by_class.columns = ['class', 'images']
         grouped_by_class['n_images'] = grouped_by_class['images'].map(len)
 
-        for _ in range(num_triplets):
+        for _ in tqdm(range(num_triplets), leave=False):
 
             '''
               - randomly choose anchor, positive and negative images for triplet loss
