@@ -57,8 +57,8 @@ l2_dist = PairwiseDistance(2)
 
 def main():
     stats_identities = pd.read_csv(args.identity_stats)
-    train_ids, valid_ids = train_test_split(stats_identities['class'],
-                                            startify=stats_identities['n_images'],
+    train_ids, valid_ids = train_test_split(stats_identities['class'].values,
+                                            startify=stats_identities['n_images'].values,
                                             test_size=args.test_size)
     identities = pd.read_csv(args.identity_csv_name)
     train_identities = identities[identities['class'].isin(train_ids)]
