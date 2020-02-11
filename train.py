@@ -29,7 +29,7 @@ parser.add_argument('--num-classes', default=10000, type=int, metavar='NC',
                     help='number of clases (default: 10000)')
 parser.add_argument('--test-size', default=0.2, type=float,
                     help='ratio of validation set')
-parser.add_argument('--num-train-triplets', default=100000, type=int, metavar='NTT',
+parser.add_argument('--num-train-triplets', default=10000, type=int, metavar='NTT',
                     help='number of triplets for training (default: 10000)')
 parser.add_argument('--num-valid-triplets', default=10000, type=int, metavar='NVT',
                     help='number of triplets for vaidation (default: 10000)')
@@ -49,6 +49,7 @@ parser.add_argument('--identity-stats', default='/data_science/computer_vision/d
                     type=str, help="csv file with stats on each identity")
 parser.add_argument('--root-dir', default='/data_science/computer_vision/data/celeba/', type=str,
                     help='root directory for data')
+parser.add_argument('--save-model', default=1, choices=[0, 1], type=int)
 parser.add_argument('--epochs-save', default=5, type=int,
                     help='number of epochs to save model')
 
@@ -76,19 +77,19 @@ def main():
             './log/checkpoint_epoch{}.pth'.format(args.start_epoch-1))
         model.load_state_dict(checkpoint['state_dict'])
 
-    data_loaders, data_size = get_dataloader(args.root_dir,
-                                             train_identities,
-                                             valid_identities,
-                                             args.num_train_triplets,
-                                             args.num_valid_triplets,
-                                             args.batch_size,
-                                             args.num_workers)
-
     for epoch in range(args.start_epoch, args.num_epochs + args.start_epoch):
 
         print(80 * '=')
         print('Epoch [{}/{}]'.format(epoch,
                                      args.num_epochs + args.start_epoch - 1))
+
+        data_loaders, data_size = get_dataloader(args.root_dir,
+                                                 train_identities,
+                                                 valid_identities,
+                                                 args.num_train_triplets,
+                                                 args.num_valid_triplets,
+                                                 args.batch_size,
+                                                 args.num_workers)
 
         train_valid(model,
                     optimizer,
@@ -182,7 +183,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
         avg_triplet_loss = triplet_loss_sum / data_size[phase]
         print('  {} set - Triplet Loss       = {:.8f}'.format(phase, avg_triplet_loss))
 
-        if epoch % args.epochs_save == 0:
+        if (epoch % args.epochs_save == 0) & (bool(args.save_model)):
 
             labels = np.array(
                 [sublabel for label in labels for sublabel in label])
