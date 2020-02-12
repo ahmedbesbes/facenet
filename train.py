@@ -126,6 +126,8 @@ def main():
 
 def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writer):
 
+    best_loss = np.inf
+
     for phase in ['train', 'valid']:
 
         labels, distances = [], []
@@ -212,29 +214,38 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
         avg_triplet_loss = triplet_loss_sum / data_size[phase]
         print('  {} set - Triplet Loss       = {:.8f}'.format(phase, avg_triplet_loss))
 
-        if (epoch % args.epochs_save == 0) & (bool(args.save_model)):
-
-            labels = np.array(
-                [sublabel for label in labels for sublabel in label])
-            distances = np.array(
-                [subdist for dist in distances for subdist in dist])
-
-            tpr, fpr, accuracy, val, val_std, far = evaluate(distances, labels)
-            print(
-                '  {} set - Accuracy           = {:.8f}'.format(phase, np.mean(accuracy)))
-
-            with open('./log/{}_log_epoch{}.txt'.format(phase, epoch), 'w') as f:
-                f.write(str(epoch) + '\t' +
-                        str(np.mean(accuracy)) + '\t' +
-                        str(avg_triplet_loss))
+        if bool(args.save_model):
+            if avg_triplet_loss < best_loss:
+                best_loss = avg_triplet_loss
 
             if phase == 'train':
                 torch.save({'epoch': epoch,
                             'state_dict': model.state_dict()},
-                           './log/checkpoint_epoch{}.pth'.format(epoch))
-            else:
-                plot_roc(
-                    fpr, tpr, figure_name='./log/roc_valid_epoch_{}.png'.format(epoch))
+                           './log/checkpoint_epoch_{}_loss_{}.pth'.format(epoch, best_loss))
+
+        # if (epoch % args.epochs_save == 0) & (bool(args.save_model)):
+
+        #     labels = np.array(
+        #         [sublabel for label in labels for sublabel in label])
+        #     distances = np.array(
+        #         [subdist for dist in distances for subdist in dist])
+
+        #     tpr, fpr, accuracy, val, val_std, far = evaluate(distances, labels)
+        #     print(
+        #         '  {} set - Accuracy           = {:.8f}'.format(phase, np.mean(accuracy)))
+
+        #     with open('./log/{}_log_epoch{}.txt'.format(phase, epoch), 'w') as f:
+        #         f.write(str(epoch) + '\t' +
+        #                 str(np.mean(accuracy)) + '\t' +
+        #                 str(avg_triplet_loss))
+
+        #     if phase == 'train':
+        #         torch.save({'epoch': epoch,
+        #                     'state_dict': model.state_dict()},
+        #                    './log/checkpoint_epoch{}.pth'.format(epoch))
+        #     else:
+        #         plot_roc(
+        #             fpr, tpr, figure_name='./log/roc_valid_epoch_{}.png'.format(epoch))
 
 
 if __name__ == '__main__':
