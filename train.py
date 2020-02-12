@@ -221,10 +221,9 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
         )
 
         if bool(args.save_model):
-            if avg_triplet_loss < best_loss:
-                best_loss = avg_triplet_loss
-
-                if phase == 'train':
+            if phase == 'valid':
+                if avg_triplet_loss < best_loss:
+                    best_loss = avg_triplet_loss
                     torch.save({'epoch': epoch,
                                 'state_dict': model.state_dict()},
                                './log/checkpoint_epoch_{}_loss_{:0.4f}.pth'.format(epoch, best_loss))
