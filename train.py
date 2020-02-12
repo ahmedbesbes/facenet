@@ -1,4 +1,7 @@
+import os
+import shutil
 import argparse
+from datetime import datetime
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -11,6 +14,8 @@ from torch.optim import lr_scheduler
 from torch.nn.modules.distance import PairwiseDistance
 import torchvision
 from torchvision import transforms
+
+from torch.utils.tensorboard import SummaryWriter
 
 from eval_metrics import evaluate, plot_roc
 from utils import TripletLoss
@@ -52,6 +57,10 @@ parser.add_argument('--root-dir', default='/data_science/computer_vision/data/ce
 parser.add_argument('--save-model', default=1, choices=[0, 1], type=int)
 parser.add_argument('--epochs-save', default=5, type=int,
                     help='number of epochs to save model')
+parser.add_argument('--logs-path', default='./logs/',
+                    type=str, help="path of tensorboard logs")
+parser.add_argument('--flush-history', default=0, choices=[
+                    0, 1], type=int, help="flag to whether or not remove tensorboard logs")
 
 args = parser.parse_args()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -59,6 +68,19 @@ l2_dist = PairwiseDistance(2)
 
 
 def main():
+    if args.flush_history == 1:
+        objects = os.listdir(args.log_path)
+        for f in objects:
+            if os.path.isdir(os.path.join(args.log_path, f)):
+                shutil.rmtree(os.path.join(args.log_path, f))
+
+    now = datetime.now()
+    date_id = now.strftime("%Y%m%d-%H%M%S")
+
+    logdir = os.path.join(args.log_path, date_id)
+    os.makedirs(logdir)
+    writer = SummaryWriter(logdir)
+
     stats_identities = pd.read_csv(args.identity_stats)
     train_ids, valid_ids = train_test_split(stats_identities['class'].values,
                                             stratify=stats_identities['n_images'].values,
@@ -96,12 +118,13 @@ def main():
                     scheduler,
                     epoch,
                     data_loaders,
-                    data_size)
+                    data_size,
+                    writer)
 
     print(80 * '=')
 
 
-def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
+def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writer):
 
     for phase in ['train', 'valid']:
 
@@ -114,7 +137,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
         else:
             model.eval()
 
-        for _, batch_sample in tqdm(enumerate(dataloaders[phase]),
+        for i, batch_sample in tqdm(enumerate(dataloaders[phase]),
                                     leave=False,
                                     total=len(dataloaders[phase])):
 
@@ -179,6 +202,12 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
                 labels.append(np.zeros(dists.size(0)))
 
                 triplet_loss_sum += triplet_loss.item()
+
+                writer.add_scalar(
+                    f'{phase}/loss',
+                    triplet_loss_sum / (i+1),
+                    epoch * len(dataloaders[phase]) + i
+                )
 
         avg_triplet_loss = triplet_loss_sum / data_size[phase]
         print('  {} set - Triplet Loss       = {:.8f}'.format(phase, avg_triplet_loss))
