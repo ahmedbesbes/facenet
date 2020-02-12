@@ -214,6 +214,12 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
         avg_triplet_loss = triplet_loss_sum / data_size[phase]
         print('  {} set - Triplet Loss       = {:.8f}'.format(phase, avg_triplet_loss))
 
+        writer.add_scalar(
+            f'{phase}/loss/epoch',
+            triplet_loss_sum,
+            epoch
+        )
+
         if bool(args.save_model):
             if avg_triplet_loss < best_loss:
                 best_loss = avg_triplet_loss
