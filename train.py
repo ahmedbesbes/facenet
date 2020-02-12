@@ -227,7 +227,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
                 if phase == 'train':
                     torch.save({'epoch': epoch,
                                 'state_dict': model.state_dict()},
-                               './log/checkpoint_epoch_{}_loss_{}.pth'.format(epoch, best_loss))
+                               './log/checkpoint_epoch_{}_loss_{:0.4f}.pth'.format(epoch, best_loss))
 
         # if (epoch % args.epochs_save == 0) & (bool(args.save_model)):
 
