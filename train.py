@@ -57,7 +57,7 @@ parser.add_argument('--root-dir', default='/data_science/computer_vision/data/ce
 parser.add_argument('--save-model', default=1, choices=[0, 1], type=int)
 parser.add_argument('--epochs-save', default=5, type=int,
                     help='number of epochs to save model')
-parser.add_argument('--logs-path', default='./logs/',
+parser.add_argument('--log-path', default='./logs/',
                     type=str, help="path of tensorboard logs")
 parser.add_argument('--flush-history', default=0, choices=[
                     0, 1], type=int, help="flag to whether or not remove tensorboard logs")
