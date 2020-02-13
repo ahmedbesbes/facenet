@@ -20,7 +20,7 @@ class TripletFaceDataset(Dataset):
         self.transform = transform
         self.training_triplets = self.generate_triplets(
             self.df, self.num_triplets)
-        self.mtcnn = MTCNN(image_size=224)
+        self.mtcnn = MTCNN(image_size=224).eval()
 
     @staticmethod
     def generate_triplets(df, num_triplets):
@@ -87,10 +87,10 @@ class TripletFaceDataset(Dataset):
         pos_img = Image.open(pos_img)
         neg_img = Image.open(neg_img)
 
-        anc_img = self.mtcnn(anc_img)
-        print('type image : ', type(anc_img))
-        pos_img = self.mtcnn(pos_img)
-        neg_img = self.mtcnn(neg_img)
+        with torch.no_grad():
+            anc_img = self.mtcnn(anc_img)
+            pos_img = self.mtcnn(pos_img)
+            neg_img = self.mtcnn(neg_img)
 
         pos_class = torch.from_numpy(np.array([pos_class]).astype('long'))
         neg_class = torch.from_numpy(np.array([neg_class]).astype('long'))
