@@ -50,8 +50,6 @@ parser.add_argument('--margin', default=0.5, type=float, metavar='MG',
                     help='margin (default: 0.5)')
 parser.add_argument('--identity-csv-name', default='/data_science/computer_vision/data/celeba/identities.csv',
                     type=str, help='files with image id and identity id')
-parser.add_argument('--identity-stats', default='/data_science/computer_vision/data/celeba/stats_identities.csv',
-                    type=str, help="csv file with stats on each identity")
 parser.add_argument('--root-dir', default='/data_science/computer_vision/data/celeba/', type=str,
                     help='root directory for data')
 parser.add_argument('--save-model', default=1, choices=[0, 1], type=int)
@@ -81,11 +79,15 @@ def main():
     os.makedirs(logdir)
     writer = SummaryWriter(logdir)
 
-    stats_identities = pd.read_csv(args.identity_stats)
+    identities = pd.read_csv(args.identity_csv_name)
+    identities = identities[identities['rejected'] != 1]
+    stats_identities = identities['class'].value_counts()
+    stats_identities.reset_index(inplace=True)
+    stats_identities.columns = ['class', 'n_images']
+
     train_ids, valid_ids = train_test_split(stats_identities['class'].values,
                                             stratify=stats_identities['n_images'].values,
                                             test_size=args.test_size)
-    identities = pd.read_csv(args.identity_csv_name)
     train_identities = identities[identities['class'].isin(train_ids)]
     valid_identities = identities[identities['class'].isin(valid_ids)]
 

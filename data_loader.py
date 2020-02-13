@@ -71,11 +71,11 @@ class TripletFaceDataset(Dataset):
             idx]
 
         anc_img = os.path.join(
-            self.root_dir, 'img_align_celeba', 'img_align_celeba', anc_id)
+            self.root_dir, 'cropped', anc_id)
         pos_img = os.path.join(
-            self.root_dir, 'img_align_celeba', 'img_align_celeba', pos_id)
+            self.root_dir, 'cropped', pos_id)
         neg_img = os.path.join(
-            self.root_dir, 'img_align_celeba', 'img_align_celeba', neg_id)
+            self.root_dir, 'cropped', neg_id)
 
         anc_img = io.imread(anc_img)
         pos_img = io.imread(pos_img)
