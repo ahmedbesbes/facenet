@@ -81,7 +81,7 @@ def main():
 
     identities = pd.read_csv(args.identity_csv_name)
     identities = identities[identities['rejected'] != 1]
-    stats_identities = identities['class'].value_counts()
+    stats_identities = pd.DataFrame(identities['class'].value_counts())
     stats_identities.reset_index(inplace=True)
     stats_identities.columns = ['class', 'n_images']
 
