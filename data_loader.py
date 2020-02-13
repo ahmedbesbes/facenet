@@ -84,6 +84,7 @@ class TripletFaceDataset(Dataset):
         # neg_img = io.imread(neg_img)
 
         anc_img = Image.open(anc_img)
+        print('type image : ', type(anc_img))
         pos_img = Image.open(pos_img)
         neg_img = Image.open(neg_img)
 
