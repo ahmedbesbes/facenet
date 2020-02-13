@@ -20,7 +20,7 @@ class TripletFaceDataset(Dataset):
         self.transform = transform
         self.training_triplets = self.generate_triplets(
             self.df, self.num_triplets)
-        self.mtcnn = MTCNN(image_size=(224, 224))
+        self.mtcnn = MTCNN(image_size=224)
 
     @staticmethod
     def generate_triplets(df, num_triplets):
