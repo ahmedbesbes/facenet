@@ -2,9 +2,11 @@ import os
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
+from PIL import Image
 from skimage import io
 import torch
 from torchvision import transforms
+from facenet_pytorch import MTCNN
 from torch.utils.data import Dataset
 
 
@@ -18,6 +20,7 @@ class TripletFaceDataset(Dataset):
         self.transform = transform
         self.training_triplets = self.generate_triplets(
             self.df, self.num_triplets)
+        self.mtcnn = MTCNN(image_size=(224, 224))
 
     @staticmethod
     def generate_triplets(df, num_triplets):
@@ -76,9 +79,17 @@ class TripletFaceDataset(Dataset):
         neg_img = os.path.join(
             self.root_dir, 'img_align_celeba', 'img_align_celeba', neg_id)
 
-        anc_img = io.imread(anc_img)
-        pos_img = io.imread(pos_img)
-        neg_img = io.imread(neg_img)
+        # anc_img = io.imread(anc_img)
+        # pos_img = io.imread(pos_img)
+        # neg_img = io.imread(neg_img)
+
+        anc_img = Image.open(anc_img)
+        pos_img = Image.open(pos_img)
+        neg_img = Image.open(neg_img)
+
+        anc_img = self.mtcnn(anc_img)
+        pos_img = self.mtcnn(pos_img)
+        neg_img = self.mtcnn(neg_img)
 
         pos_class = torch.from_numpy(np.array([pos_class]).astype('long'))
         neg_class = torch.from_numpy(np.array([neg_class]).astype('long'))

@@ -47,3 +47,16 @@ class FaceNetModel(nn.Module):
         res = self.model.classifier(features)
 
         return res
+
+    def _get_output_conv(self, x):
+        x = self.model.conv1(x)
+        x = self.model.bn1(x)
+        x = self.model.relu(x)
+        x = self.model.maxpool(x)
+        x = self.model.layer1(x)
+        x = self.model.layer2(x)
+        x = self.model.layer3(x)
+        x = self.model.layer4(x)
+        x = x.view(x.size(0), -1)
+        output_conv_shape = x.size(1)
+        return output_conv_shape
