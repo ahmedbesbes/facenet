@@ -10,7 +10,8 @@ class FaceNetModel(nn.Module):
 
         self.model = resnet34(pretrained)
         self.embedding_size = embedding_size
-        self.model.fc = nn.Linear(21504, self.embedding_size)
+        self.output_dim = self._get_output_conv((1, 3, 224, 224))
+        self.model.fc = nn.Linear(self.output_dim, self.embedding_size)
         self.model.classifier = nn.Linear(self.embedding_size, num_classes)
 
     def l2_norm(self, input):
@@ -48,7 +49,8 @@ class FaceNetModel(nn.Module):
 
         return res
 
-    def _get_output_conv(self, x):
+    def _get_output_conv(self, shape):
+        x = torch.rand(shape)
         x = self.model.conv1(x)
         x = self.model.bn1(x)
         x = self.model.relu(x)
