@@ -59,6 +59,8 @@ parser.add_argument('--log-path', default='./logs/',
                     type=str, help="path of tensorboard logs")
 parser.add_argument('--flush-history', default=0, choices=[
                     0, 1], type=int, help="flag to whether or not remove tensorboard logs")
+parser.add_argument('--pretrained', default=0,
+                    choices=[0, 1], type=int, help="flag to whether or not use pretrained weights")
 
 args = parser.parse_args()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -92,7 +94,8 @@ def main():
     valid_identities = identities[identities['class'].isin(valid_ids)]
 
     model = FaceNetModel(embedding_size=args.embedding_size,
-                         num_classes=args.num_classes).to(device)
+                         num_classes=args.num_classes,
+                         pretrained=bool(args.pretrained)).to(device)
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 
@@ -218,7 +221,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
 
         writer.add_scalar(
             f'{phase}/loss/epoch',
-            triplet_loss_sum,
+            avg_triplet_loss,
             epoch
         )
 
