@@ -226,7 +226,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
                                 'state_dict': model.state_dict()},
                                './log/checkpoint_epoch_{}.pth'.format(date_id))
 
-        return best_loss
+    return best_loss
 
 
 if __name__ == '__main__':
