@@ -110,13 +110,13 @@ def get_dataloader(root_dir,
     data_transforms = {
         'train': transforms.Compose([
             transforms.ToPILImage(),
-            transforms.Resize((160, 160)),
+            transforms.Resize((200, 200)),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])]),
         'valid': transforms.Compose([
             transforms.ToPILImage(),
-            transforms.Resize((160, 160)),
+            transforms.Resize((200, 200)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])}
 

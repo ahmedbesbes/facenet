@@ -111,6 +111,8 @@ def main():
             './log/checkpoint_epoch{}.pth'.format(args.start_epoch-1))
         model.load_state_dict(checkpoint['state_dict'])
 
+    best_loss = np.inf
+
     for epoch in range(args.start_epoch, args.num_epochs + args.start_epoch):
 
         print(80 * '=')
@@ -125,20 +127,20 @@ def main():
                                                  args.batch_size,
                                                  args.num_workers)
 
-        train_valid(model,
-                    optimizer,
-                    scheduler,
-                    epoch,
-                    data_loaders,
-                    data_size,
-                    writer)
+        best_loss = train_valid(model,
+                                optimizer,
+                                scheduler,
+                                epoch,
+                                data_loaders,
+                                data_size,
+                                writer,
+                                best_loss,
+                                date_id)
 
     print(80 * '=')
 
 
-def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writer):
-
-    best_loss = np.inf
+def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writer, best_loss, date_id):
 
     for phase in ['train', 'valid']:
 
@@ -158,9 +160,6 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
             anc_img = batch_sample['anc_img'].to(device)
             pos_img = batch_sample['pos_img'].to(device)
             neg_img = batch_sample['neg_img'].to(device)
-
-            # pos_cls = batch_sample['pos_class'].to(device)
-            # neg_cls = batch_sample['neg_class'].to(device)
 
             with torch.set_grad_enabled(phase == 'train'):
 
@@ -184,20 +183,6 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
                 anc_hard_embed = anc_embed[hard_triplets].to(device)
                 pos_hard_embed = pos_embed[hard_triplets].to(device)
                 neg_hard_embed = neg_embed[hard_triplets].to(device)
-
-                # anc_hard_img = anc_img[hard_triplets].to(device)
-                # pos_hard_img = pos_img[hard_triplets].to(device)
-                # neg_hard_img = neg_img[hard_triplets].to(device)
-
-                # pos_hard_cls = pos_cls[hard_triplets].to(device)
-                # neg_hard_cls = neg_cls[hard_triplets].to(device)
-
-                # anc_img_pred = model.forward_classifier(
-                #     anc_hard_img).to(device)
-                # pos_img_pred = model.forward_classifier(
-                #     pos_hard_img).to(device)
-                # neg_img_pred = model.forward_classifier(
-                #     neg_hard_img).to(device)
 
                 triplet_loss = TripletLoss(args.margin).forward(
                     anc_hard_embed, pos_hard_embed, neg_hard_embed).to(device)
@@ -223,7 +208,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
                     epoch * len(dataloaders[phase]) + i
                 )
 
-        avg_triplet_loss = triplet_loss_sum / data_size[phase]
+        avg_triplet_loss = triplet_loss_sum / len(dataloaders[phase])
         print('  {} set - Triplet Loss       = {:.8f}'.format(phase, avg_triplet_loss))
 
         writer.add_scalar(
@@ -237,32 +222,11 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
                 if avg_triplet_loss < best_loss:
                     best_loss = avg_triplet_loss
                     torch.save({'epoch': epoch,
+                                'best_loss': best_loss,
                                 'state_dict': model.state_dict()},
-                               './log/checkpoint_epoch_{}_loss_{:0.4f}.pth'.format(epoch, best_loss))
+                               './log/checkpoint_epoch_{}.pth'.format(date_id))
 
-        # if (epoch % args.epochs_save == 0) & (bool(args.save_model)):
-
-        #     labels = np.array(
-        #         [sublabel for label in labels for sublabel in label])
-        #     distances = np.array(
-        #         [subdist for dist in distances for subdist in dist])
-
-        #     tpr, fpr, accuracy, val, val_std, far = evaluate(distances, labels)
-        #     print(
-        #         '  {} set - Accuracy           = {:.8f}'.format(phase, np.mean(accuracy)))
-
-        #     with open('./log/{}_log_epoch{}.txt'.format(phase, epoch), 'w') as f:
-        #         f.write(str(epoch) + '\t' +
-        #                 str(np.mean(accuracy)) + '\t' +
-        #                 str(avg_triplet_loss))
-
-        #     if phase == 'train':
-        #         torch.save({'epoch': epoch,
-        #                     'state_dict': model.state_dict()},
-        #                    './log/checkpoint_epoch{}.pth'.format(epoch))
-        #     else:
-        #         plot_roc(
-        #             fpr, tpr, figure_name='./log/roc_valid_epoch_{}.png'.format(epoch))
+        return best_loss
 
 
 if __name__ == '__main__':
