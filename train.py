@@ -192,13 +192,13 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size, writ
                     triplet_loss.backward()
                     optimizer.step()
 
-                dists = l2_dist.forward(anc_embed, pos_embed)
-                distances.append(dists.data.cpu().numpy())
-                labels.append(np.ones(dists.size(0)))
+                # dists = l2_dist.forward(anc_embed, pos_embed)
+                # distances.append(dists.data.cpu().numpy())
+                # labels.append(np.ones(dists.size(0)))
 
-                dists = l2_dist.forward(anc_embed, neg_embed)
-                distances.append(dists.data.cpu().numpy())
-                labels.append(np.zeros(dists.size(0)))
+                # dists = l2_dist.forward(anc_embed, neg_embed)
+                # distances.append(dists.data.cpu().numpy())
+                # labels.append(np.zeros(dists.size(0)))
 
                 triplet_loss_sum += triplet_loss.item()
 
