@@ -19,7 +19,8 @@ from torch.utils.tensorboard import SummaryWriter
 
 from eval_metrics import evaluate, plot_roc
 from utils import TripletLoss
-from models import FaceNetModel
+from models.facenet_resnet34 import FaceNetModel
+from models.facenet_resnet_inception import InceptionResnetV1
 from data_loader import TripletFaceDataset, get_dataloader
 
 
@@ -61,6 +62,8 @@ parser.add_argument('--flush-history', default=0, choices=[
                     0, 1], type=int, help="flag to whether or not remove tensorboard logs")
 parser.add_argument('--pretrained', default=0,
                     choices=[0, 1], type=int, help="flag to whether or not use pretrained weights")
+parser.add_argument('--model', type=str,
+                    choices=['resnet34', 'inception'], default='resnet34', help='backbone model')
 
 args = parser.parse_args()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -93,9 +96,13 @@ def main():
     train_identities = identities[identities['class'].isin(train_ids)]
     valid_identities = identities[identities['class'].isin(valid_ids)]
 
-    model = FaceNetModel(embedding_size=args.embedding_size,
-                         num_classes=args.num_classes,
-                         pretrained=bool(args.pretrained)).to(device)
+    if args.model == 'resnet34':
+        model = FaceNetModel(embedding_size=args.embedding_size,
+                             num_classes=args.num_classes,
+                             pretrained=bool(args.pretrained)).to(device)
+    elif args.model == 'inception':
+        model = InceptionResnetV1(num_classes=args.num_classes).to(device)
+
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 
