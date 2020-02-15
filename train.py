@@ -46,7 +46,7 @@ parser.add_argument('--batch-size', default=64, type=int, metavar='BS',
 parser.add_argument('--num-workers', default=8, type=int, metavar='NW',
                     help='number of workers (default: 8)')
 parser.add_argument('--learning-rate', default=0.001, type=float, metavar='LR',
-                    help='learning rate (default: 0.001)')
+                    help='learning rate (sou: 0.001)')
 parser.add_argument('--margin', default=0.5, type=float, metavar='MG',
                     help='margin (default: 0.5)')
 parser.add_argument('--identity-csv-name', default='/data_science/computer_vision/data/celeba/identities.csv',
@@ -64,6 +64,8 @@ parser.add_argument('--pretrained', default=0,
                     choices=[0, 1], type=int, help="flag to whether or not use pretrained weights")
 parser.add_argument('--model', type=str,
                     choices=['resnet34', 'inception'], default='resnet34', help='backbone model')
+parser.add_argument('--model', type=str, default=None,
+                    help="path to model checkpoint")
 
 args = parser.parse_args()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -106,9 +108,8 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 
-    if args.start_epoch != 0:
-        checkpoint = torch.load(
-            './log/checkpoint_epoch{}.pth'.format(args.start_epoch-1))
+    if args.checkpoint:
+        checkpoint = torch.load(args.checkpoint)
         model.load_state_dict(checkpoint['state_dict'])
 
     best_loss = np.inf
