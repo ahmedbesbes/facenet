@@ -66,6 +66,8 @@ parser.add_argument('--model', type=str,
                     choices=['resnet34', 'inception'], default='resnet34', help='backbone model')
 parser.add_argument('--checkpoint', type=str, default=None,
                     help="path to model checkpoint")
+parser.add_argument('--step-size', type=int, default=30,
+                    help="step-size of learning rate scheduler")
 
 args = parser.parse_args()
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -94,7 +96,9 @@ def main():
 
     train_ids, valid_ids = train_test_split(stats_identities['class'].values,
                                             stratify=stats_identities['n_images'].values,
-                                            test_size=args.test_size)
+                                            test_size=args.test_size,
+                                            random_state=2020
+                                            )
     train_identities = identities[identities['class'].isin(train_ids)]
     valid_identities = identities[identities['class'].isin(valid_ids)]
 
@@ -106,7 +110,8 @@ def main():
         model = InceptionResnetV1(num_classes=args.num_classes).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
+    scheduler = lr_scheduler.StepLR(
+        optimizer, step_size=args.step_size, gamma=0.1)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
