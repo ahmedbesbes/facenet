@@ -64,7 +64,7 @@ parser.add_argument('--pretrained', default=0,
                     choices=[0, 1], type=int, help="flag to whether or not use pretrained weights")
 parser.add_argument('--model', type=str,
                     choices=['resnet34', 'inception'], default='resnet34', help='backbone model')
-parser.add_argument('--model', type=str, default=None,
+parser.add_argument('--checkpoint', type=str, default=None,
                     help="path to model checkpoint")
 
 args = parser.parse_args()
